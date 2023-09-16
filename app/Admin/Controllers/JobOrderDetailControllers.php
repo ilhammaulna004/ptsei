@@ -108,8 +108,17 @@ class JobOrderDetailControllers extends Controller
             $filter->between('selesai_date_riksa', 'Selesai Riksa')->datetime();
             $filter->between('mulai_pengecekan', 'Mulai Pengecekan')->datetime();
             $filter->between('selesai_pengecekan', 'Selesai Pengecekan')->datetime();
-            $filter->between('created_at', 'Created Time')->datetime();
+            $filter->where(function ($query) {
+                $query->whereHas('job_order', function ($query) {
+                    $query->where('status_pembayaran', "{$this->input}");
+                });            
+            }, 'Status Pemabayaran')->radio([
+                ''   => 'All',
+                0    => 'Belum Bayar',
+                1    => 'Sudah Bayar',
+            ]);
             $filter->like('description', 'Description');
+            $filter->between('created_at', 'Created Time')->datetime();
         });
 
         $grid->disableActions();
@@ -126,9 +135,9 @@ class JobOrderDetailControllers extends Controller
             $actions->disableDelete();
         });
         $grid->job_order()->nomor_job_order('Job Order');
-        $grid->column('job_order_id', 'Customer')->display(function ($job_order_id) {
+        $grid->column('job_order_id', 'Customer & Address')->display(function ($job_order_id) {
             $customer = JobOrder::with('customer')->find($job_order_id);
-            return $customer->customer->fullname;        
+            return $customer->customer->fullname." (".$customer->customer->address.")";        
         });
         $grid->jasa()->nama('Nama Jasa');
         $grid->qty('QTY.');
@@ -143,6 +152,17 @@ class JobOrderDetailControllers extends Controller
         $grid->selesai_date_riksa('TGL. Selesai Riksa');
         $grid->mulai_pengecekan('TGL. Mulai Pengecekan');
         $grid->selesai_pengecekan('TGL. Selesai Pengecekan');
+        $grid->job_order()->status_pembayaran('Status Pembayaran')->display(function ($status_pembayaran) {
+
+            // return "<span style='color:blue'>$title</span>";
+            if ($status_pembayaran == 1) {
+                # code...
+                return "Sudah Bayar";
+            }else{
+                return "Belum Bayar";
+            }
+        
+        });
         $grid->description('Description');
         $grid->created_at(trans('admin.created_at'));
 
