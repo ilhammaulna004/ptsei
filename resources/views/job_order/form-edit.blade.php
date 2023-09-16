@@ -63,9 +63,22 @@
                     <div class="form-group">
                         <label for="inputstatus_pembayaran" class="col-sm-1 control-label"> Status Pembayaran </label>
                         <div class="col-sm-4">
-                            <input type="radio" name="status_pembayaran" id="" class="inputstatus_pembayaran" value="1" {{$data_jo->status_pembayaran == 1 ? 'checked' : ''}}>Sudah Bayar
+                            <input type="radio" name="status_pembayaran" id="" class="inputstatus_pembayaran" value="2" {{$data_jo->status_pembayaran == 2 ? 'checked' : ''}}>Sudah Lunas
+                            <input type="radio" name="status_pembayaran" id="" class="inputstatus_pembayaran" value="1" {{$data_jo->status_pembayaran == 1 ? 'checked' : ''}}>Setengah Pembayaran
                             <input type="radio" name="status_pembayaran" id="" class="inputstatus_pembayaran" value="0" {{$data_jo->status_pembayaran == 0 ? 'checked' : ''}}>Belum Bayar
                         </div>                
+                    </div>
+                    <div class="form-group">
+                        <label for="inputnama_pengawas" class="col-sm-1 control-label"> Nama Pengawas </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="nama_pengawas" class="form-control" id="inputnama_pengawas" placeholder="Project By" value="{{ old('nama_pengawas') }}" value="{{ $data_jo->nama_pengawas }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputnohp_pengawas" class="col-sm-1 control-label"> NO. HP. Pengawas </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="nohp_pengawas" class="form-control" id="inputnohp_pengawas" placeholder="Project By" value="{{ old('nohp_pengawas') }}" value="{{ $data_jo->nohp_pengawas }}">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="inputproject_by" class="col-sm-1 control-label"> Project By </label>

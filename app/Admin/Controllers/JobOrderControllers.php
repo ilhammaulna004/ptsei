@@ -19,6 +19,8 @@ use Illuminate\Support\MessageBag;
 use Illuminate\Support\Facades\DB;
 Use Encore\Admin\Widgets\Table;
 
+Use App\Admin\Extensions\JobOrderExporter;
+
 class JobOrderControllers extends Controller
 {
     use HasResourceActions;
@@ -94,6 +96,8 @@ class JobOrderControllers extends Controller
             $q_jo->status_pembayaran = $request->status_pembayaran;
             $q_jo->project_by = $request->project_by;
             $q_jo->description = $request->description;
+            $q_jo->nama_pengawas = $request->nama_pengawas;
+            $q_jo->nohp_pengawas = $request->nohp_pengawas;
 
             $q_jo->save();
 
@@ -188,6 +192,8 @@ class JobOrderControllers extends Controller
             $q_jo->status_pembayaran = $request->status_pembayaran;
             $q_jo->project_by = $request->project_by;
             $q_jo->description = $request->description;
+            $q_jo->nama_pengawas = $request->nama_pengawas;
+            $q_jo->nohp_pengawas = $request->nohp_pengawas;
 
             $q_jo->save();
 
@@ -265,14 +271,37 @@ class JobOrderControllers extends Controller
             $actions->disableView();
         });
 
-        $grid->export(function ($export) {        
+        $grid->export(function ($export) {    
+            $export->originalValue(['price', 'mulai_date_riksa', 'selesai_date_riksa', 'nomor_po', 'date_pembayaran', 'project_by', 'nama_pengawas', 'nohp_pengawas']);
+            $export->column('status_pembayaran', function ($value, $original) {
+                /* if ($original == 1) {
+                    # code...
+                    return "Sudah Bayar";
+                }else{
+                    return "Belum Bayar";
+                } */
+
+                if ($original == 2) {
+                    # code...
+                    return "Sudah Lunas";
+                }elseif ($original == 1) {
+                    # code...
+                    return "Setengah Pembayaran";
+                }elseif ($original == 0) {
+                    # code...
+                    return "Belum Ada Pembayaran";
+                }
+            });
             $export->except(['']);
         });
+
+        // $grid->exporter(new JobOrderExporter());
 
         // $grid->id('ID');
         $grid->nomor_job_order('No. Job Order');
         // $grid->customer_id('customer_id');
         $grid->customer()->fullname('Customer');
+        $grid->customer()->address('Customer Address');
         // $grid->price('Price');
         $grid->column('price')->display(function ($price){
             return number_format($price, 2);
@@ -281,18 +310,31 @@ class JobOrderControllers extends Controller
         $grid->selesai_date_riksa('TGL. Selesai Riksa')->date('Y-m-d');
         $grid->nomor_po('NO. PO.')->editable();
         $grid->date_pembayaran('TGL. Pembayaran')->date('Y-m-d');
-        $grid->column('status_pembayaran')->display(function ($status_pembayaran) {
+        $grid->column('status_pembayaran', 'Status Peluanasan')->display(function ($status_pembayaran) {
 
             // return "<span style='color:blue'>$title</span>";
-            if ($status_pembayaran == 1) {
+            /* if ($status_pembayaran == 1) {
                 # code...
                 return "Sudah Bayar";
             }else{
                 return "Belum Bayar";
+            } */
+
+            if ($status_pembayaran == 2) {
+                # code...
+                return "Sudah Lunas";
+            }elseif ($status_pembayaran == 1) {
+                # code...
+                return "Setengah Pembayaran";
+            }elseif ($status_pembayaran == 0) {
+                # code...
+                return "Belum Ada Pembayaran";
             }
         
         });
         $grid->project_by('Project By')->editable();
+        $grid->nama_pengawas('Nama Pengawas')->editable();
+        $grid->nohp_pengawas('NO. HP. Pengawas')->editable();
         $grid->description('Description')->editable();
         $grid->created_at(trans('admin.created_at'));
         $grid->column('', 'Lihat Jasa')->modal('Jasa Job Order', function ($model) {
