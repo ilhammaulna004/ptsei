@@ -23,8 +23,8 @@ class JasaControllers extends Controller
     public function index(Content $content)
     {
         return $content
-            ->header(trans('admin.index'))
-            ->description(trans('admin.description'))
+            ->header("List")
+            ->description("Jasa")
             ->body($this->grid());
     }
 
@@ -38,8 +38,8 @@ class JasaControllers extends Controller
     public function show($id, Content $content)
     {
         return $content
-            ->header(trans('admin.detail'))
-            ->description(trans('admin.description'))
+            ->header("Detail")
+            ->description("Jasa")
             ->body($this->detail($id));
     }
 
@@ -53,8 +53,8 @@ class JasaControllers extends Controller
     public function edit($id, Content $content)
     {
         return $content
-            ->header(trans('admin.edit'))
-            ->description(trans('admin.description'))
+            ->header("Edit")
+            ->description("Jasa")
             ->body($this->form()->edit($id));
     }
 
@@ -67,8 +67,8 @@ class JasaControllers extends Controller
     public function create(Content $content)
     {
         return $content
-            ->header(trans('admin.create'))
-            ->description(trans('admin.description'))
+            ->header("Create")
+            ->description("Jasa")
             ->body($this->form());
     }
 

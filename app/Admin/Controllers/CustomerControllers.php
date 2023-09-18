@@ -51,8 +51,8 @@ class CustomerControllers extends Controller
     public function show($id, Content $content)
     {
         return $content
-            ->header(trans('admin.detail'))
-            ->description(trans('admin.description'))
+            ->header("Detail")
+            ->description("Customer")
             ->body($this->detail($id));
     }
 
@@ -66,8 +66,8 @@ class CustomerControllers extends Controller
     public function edit($id, Content $content)
     {
         return $content
-            ->header(trans('admin.edit'))
-            ->description(trans('admin.description'))
+            ->header("Edit")
+            ->description("Customer")
             ->body($this->form()->edit($id));
     }
 
@@ -80,8 +80,8 @@ class CustomerControllers extends Controller
     public function create(Content $content)
     {
         return $content
-            ->header(trans('admin.create'))
-            ->description(trans('admin.description'))
+            ->header("Create")
+            ->description("Customer")
             ->body($this->form());
     }
 
