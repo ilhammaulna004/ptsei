@@ -104,18 +104,19 @@ class JobOrderDetailControllers extends Controller
             $filter->between('qty', 'QTY');
             $filter->between('price_per_unit', 'Price');
             $filter->between('total_price', 'Total Price');            
-            $filter->between('mulai_date_riksa', 'Mulai Riksa')->datetime();
-            $filter->between('selesai_date_riksa', 'Selesai Riksa')->datetime();
-            $filter->between('mulai_pengecekan', 'Mulai Pengecekan')->datetime();
-            $filter->between('selesai_pengecekan', 'Selesai Pengecekan')->datetime();
+            $filter->between('mulai_date_riksa', 'TGL Riksa')->datetime();
+            $filter->between('selesai_date_riksa', 'Selesai Laporan')->datetime();
+            $filter->between('mulai_pengecekan', 'Naik Suket')->datetime();
+            $filter->between('selesai_pengecekan', 'Selesai Suket')->datetime();
             $filter->where(function ($query) {
                 $query->whereHas('job_order', function ($query) {
                     $query->where('status_pembayaran', "{$this->input}");
                 });            
             }, 'Status Pemabayaran')->radio([
                 ''   => 'All',
-                0    => 'Belum Bayar',
-                1    => 'Sudah Bayar',
+                0    => 'Belum Ada Pembayaran',
+                1    => 'Setengah Pembayaran',
+                2    => 'Sudah Lunas',
             ]);
             $filter->like('description', 'Description');
             $filter->between('created_at', 'Created Time')->datetime();
@@ -148,18 +149,22 @@ class JobOrderDetailControllers extends Controller
         $grid->column('total_price', 'Total Price')->display(function ($tprice){
             return number_format($tprice, 2);
         });
-        $grid->mulai_date_riksa('TGL. Mulai Riksa');
-        $grid->selesai_date_riksa('TGL. Selesai Riksa');
-        $grid->mulai_pengecekan('TGL. Mulai Pengecekan');
-        $grid->selesai_pengecekan('TGL. Selesai Pengecekan');
+        $grid->mulai_date_riksa('TGL. Riksa'); // perubahan dari mulai riksa jadi riksa
+        $grid->selesai_date_riksa('TGL. Selesai Laporan'); // perubahan dari selesai riksa jadi selesai laporan
+        $grid->mulai_pengecekan('TGL. Naik Suket'); // perubahan dari mulai pengecekan jadi naik suket
+        $grid->selesai_pengecekan('TGL. Selesai Suket'); // perubahan dari selesai pengecekan jadi suket selesai
         $grid->job_order()->status_pembayaran('Status Pembayaran')->display(function ($status_pembayaran) {
 
             // return "<span style='color:blue'>$title</span>";
-            if ($status_pembayaran == 1) {
+            if ($status_pembayaran == 2) {
                 # code...
-                return "Sudah Bayar";
-            }else{
-                return "Belum Bayar";
+                return "Sudah Lunas";
+            }elseif ($status_pembayaran == 1) {
+                # code...
+                return "Setengah Pembayaran";
+            }elseif ($status_pembayaran == 0) {
+                # code...
+                return "Belum Ada Pembayaran";
             }
         
         });

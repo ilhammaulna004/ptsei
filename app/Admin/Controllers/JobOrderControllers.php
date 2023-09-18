@@ -4,6 +4,7 @@ namespace App\Admin\Controllers;
 
 use App\Models\JobOrder;
 use App\Models\JobOrderDetail;
+use App\Models\Invoice;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
@@ -18,6 +19,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\Facades\DB;
 Use Encore\Admin\Widgets\Table;
+use Illuminate\Support\Facades\Log;
+
+use App\Admin\Actions\JobOrder\Delete;
 
 Use App\Admin\Extensions\JobOrderExporter;
 
@@ -69,7 +73,7 @@ class JobOrderControllers extends Controller
             ->body($this->form()->edit($id)); */
         
         $action = '/admin/job-order/update/'.$id;
-        $data_jo = JobOrder::with('joborderdetail')->where('id', $id)->first();
+        $data_jo = JobOrder::with('joborderdetail','invoice')->where('id', $id)->first();
         $data_jasa = Jasa::all();
         $data_customer = Customer::all();
         return $content
@@ -78,6 +82,10 @@ class JobOrderControllers extends Controller
             // ->body($this->form());
             ->body(view('job_order.form-edit', ['action' => $action, 'data_jasa' => $data_jasa, 'data_customer' => $data_customer, 'id' => $id, 'data_jo' => $data_jo]));
     }
+
+    /* public function update(Request $request, $id){
+        return $request;
+    } */
 
     public function update(Request $request, $id){
         // return $request;
@@ -100,26 +108,61 @@ class JobOrderControllers extends Controller
             $q_jo->nohp_pengawas = $request->nohp_pengawas;
 
             $q_jo->save();
+            
+            $q_d_jod = JobOrderDetail::where("job_order_id", $id)->forceDelete();
 
-            $q_d_jod = JobOrderDetail::where("job_order_id", $id)->delete();
-
-            for ($i=0; $i < count($request->fields); $i++) { 
+            if ($request->fields) {
                 # code...
-                $q_jod = new JobOrderDetail();
-                $q_jod->job_order_id = $q_jo->id;
-                $q_jod->jasa_id = $request->fields[$i]['jasa_id'];
-                $q_jod->qty = $request->fields[$i]['qty'];
-                $q_jod->price_per_unit = $request->fields[$i]['price_per_unit'];
-                $total_price = $request->fields[$i]['qty'] * $request->fields[$i]['price_per_unit'];
-                $q_jod->total_price = $total_price;
-                $q_jod->mulai_date_riksa = $request->fields[$i]['mulai_date_riksa'];
-                $q_jod->selesai_date_riksa = $request->fields[$i]['selesai_date_riksa'];
-                $q_jod->mulai_pengecekan = $request->fields[$i]['mulai_pengecekan'];
-                $q_jod->selesai_pengecekan = $request->fields[$i]['selesai_pengecekan'];
-                $q_jod->description = $request->fields[$i]['description'];
-
-                $q_jod->save();
+                
+                for ($i=0; $i < count($request->fields); $i++) { 
+                    # code...
+                    if ($request->fields[$i]['jasa_id'] != "") {
+                        # code...
+                        if (!is_null($request->fields[$i]['qty'])) {
+                            # code...
+                            $q_jod = new JobOrderDetail();
+                            $q_jod->job_order_id = $q_jo->id;
+                            $q_jod->jasa_id = $request->fields[$i]['jasa_id'];
+                            $q_jod->qty = $request->fields[$i]['qty'];
+                            $q_jod->price_per_unit = $request->fields[$i]['price_per_unit'];
+                            $total_price = $request->fields[$i]['qty'] * $request->fields[$i]['price_per_unit'];
+                            $q_jod->total_price = $total_price;
+                            $q_jod->mulai_date_riksa = $request->fields[$i]['mulai_date_riksa'];
+                            $q_jod->selesai_date_riksa = $request->fields[$i]['selesai_date_riksa'];
+                            $q_jod->mulai_pengecekan = $request->fields[$i]['mulai_pengecekan'];
+                            $q_jod->selesai_pengecekan = $request->fields[$i]['selesai_pengecekan'];
+                            $q_jod->description = $request->fields[$i]['description'];
+            
+                            $q_jod->save();
+                        }                        
+                    }                    
+                }
             }
+            
+
+            $q_d_invoice = Invoice::where("job_order_id", $id)->forceDelete();
+            if ($request->fields_invoice) {
+                # code...
+                for ($i=0; $i < count($request->fields_invoice); $i++) { 
+                    # code...
+                    if ($request->fields_invoice[$i]['nomor_invoice'] != "") {
+                        # code...
+                        $q_invoice = new Invoice();
+                        $q_invoice->job_order_id = $q_jo->id;
+                        $q_invoice->nomor_invoice = $request->fields_invoice[$i]['nomor_invoice'];
+                        $q_invoice->nilai_tagihan = $request->fields_invoice[$i]['nilai_tagihan'];
+                        $q_invoice->value = $request->fields_invoice[$i]['value'];
+                        $q_invoice->date_pembayaran = $request->fields_invoice[$i]['date_pembayaran'];
+                        $q_invoice->jenis_invoice = $request->fields_invoice[$i]['jenis_invoice'];
+                        $q_invoice->description = $request->fields_invoice[$i]['description'];
+        
+                        $q_invoice->save();
+                    }
+                    
+                }
+            }
+
+            
 
             DB::commit();
 
@@ -162,13 +205,23 @@ class JobOrderControllers extends Controller
         $data_customer = Customer::all();
         return $content
             ->header(trans('admin.create'))
-            ->description(trans('admin.description'))
+            ->description("Job Order")
             // ->body($this->form());
             ->body(view('job_order.form', ['action' => $action, 'data_jasa' => $data_jasa, 'data_customer' => $data_customer]));
     }
 
+    /* public function store(Request $request){
+        return $request;
+    } */
+
+    /* public function store(Request $request){
+        return $request->fields_invoice[1]['nomor_invoice'];
+    } */
+
     public function store(Request $request){
         // return $request;
+
+        // Log::debug($request);
 
         DB::beginTransaction();
 
@@ -184,9 +237,9 @@ class JobOrderControllers extends Controller
             $q_jo = new JobOrder();
             $q_jo->nomor_job_order = 'SEI/'.date('Y/m/d').'/'.$getdatajo;
             $q_jo->customer_id = $request->customer_id;
-            $q_jo->price = $request->price;
-            $q_jo->mulai_date_riksa = $request->mulai_date_riksa;
-            $q_jo->selesai_date_riksa = $request->selesai_date_riksa;
+            $q_jo->price = (is_null($request->price)) ? 0 : $request->price ;
+            /* $q_jo->mulai_date_riksa = $request->mulai_date_riksa;
+            $q_jo->selesai_date_riksa = $request->selesai_date_riksa; */
             $q_jo->nomor_po = $request->nomor_po;
             $q_jo->date_pembayaran = $request->date_pembayaran;
             $q_jo->status_pembayaran = $request->status_pembayaran;
@@ -197,24 +250,46 @@ class JobOrderControllers extends Controller
 
             $q_jo->save();
 
-            for ($i=0; $i < count($request->fields); $i++) { 
+            if (!is_null($request->fields)) {
                 # code...
-                $q_jod = new JobOrderDetail();
-                $q_jod->job_order_id = $q_jo->id;
-                $q_jod->jasa_id = $request->fields[$i]['jasa_id'];
-                $q_jod->qty = $request->fields[$i]['qty'];
-                $q_jod->price_per_unit = $request->fields[$i]['price_per_unit'];
-                $total_price = $request->fields[$i]['qty'] * $request->fields[$i]['price_per_unit'];
-                $q_jod->total_price = $total_price;
-                $q_jod->mulai_date_riksa = $request->fields[$i]['mulai_date_riksa'];
-                $q_jod->selesai_date_riksa = $request->fields[$i]['selesai_date_riksa'];
-                $q_jod->mulai_pengecekan = $request->fields[$i]['mulai_pengecekan'];
-                $q_jod->selesai_pengecekan = $request->fields[$i]['selesai_pengecekan'];
-                $q_jod->description = $request->fields[$i]['description'];
-
-                $q_jod->save();
+                for ($i=0; $i < count($request->fields); $i++) { 
+                    # code...
+                    if (!is_null($request->fields[$i]['qty'])) {
+                        # code...
+                        $q_jod = new JobOrderDetail();
+                        $q_jod->job_order_id = $q_jo->id;
+                        $q_jod->jasa_id = $request->fields[$i]['jasa_id'];
+                        $q_jod->qty = $request->fields[$i]['qty'];
+                        $q_jod->price_per_unit = $request->fields[$i]['price_per_unit'];
+                        $total_price = $request->fields[$i]['qty'] * $request->fields[$i]['price_per_unit'];
+                        $q_jod->total_price = $total_price;
+                        $q_jod->mulai_date_riksa = $request->fields[$i]['mulai_date_riksa'];
+                        $q_jod->selesai_date_riksa = $request->fields[$i]['selesai_date_riksa'];
+                        $q_jod->mulai_pengecekan = $request->fields[$i]['mulai_pengecekan'];
+                        $q_jod->selesai_pengecekan = $request->fields[$i]['selesai_pengecekan'];
+                        $q_jod->description = $request->fields[$i]['description'];        
+                        $q_jod->save();
+                    }                    
+                }
             }
-
+            if ($request->fields_invoice) {
+                # code...
+                for ($invo=0; $invo < count($request->fields_invoice); $invo++) { 
+                    # code...
+                    if (!is_null($request->fields_invoice[$invo]['nomor_invoice'])) {
+                        # code...
+                        $q_invoice = new Invoice();
+                        $q_invoice->job_order_id = $q_jo->id;
+                        $q_invoice->nomor_invoice = $request->fields_invoice[$invo]['nomor_invoice'];
+                        $q_invoice->nilai_tagihan = $request->fields_invoice[$invo]['nilai_tagihan'];
+                        $q_invoice->value = $request->fields_invoice[$invo]['value'];
+                        $q_invoice->date_pembayaran = $request->fields_invoice[$invo]['date_pembayaran'];
+                        $q_invoice->jenis_invoice = $request->fields_invoice[$invo]['jenis_invoice'];
+                        $q_invoice->description = $request->fields_invoice[$invo]['description'];        
+                        $q_invoice->save();
+                    }                    
+                }
+            }
             DB::commit();
 
             $success = new MessageBag([
@@ -257,22 +332,34 @@ class JobOrderControllers extends Controller
                 });            
             }, 'Customer Name Or Customer Address');
             $filter->between('created_at', 'Created Time')->datetime();
-            $filter->between('mulai_date_riksa', 'Mulai Riksa')->datetime();
-            $filter->between('selesai_date_riksa', 'Selesai Riksa')->datetime();
-            $filter->between('date_pembayaran', 'TGL. Pembayaran')->datetime();
+            // $filter->between('mulai_date_riksa', 'Mulai Riksa')->datetime();
+            // $filter->between('selesai_date_riksa', 'Selesai Riksa')->datetime();
+            $filter->between('date_pembayaran', 'TGL. Pelunasan')->datetime();
             $filter->equal('status_pembayaran')->radio([
                 ''   => 'All',
-                0    => 'Belum Bayar',
-                1    => 'Sudah Bayar',
+                0    => 'Belum Ada Pembayaran',
+                1    => 'Setengah Pembayaran',
+                2    => 'Sudah Lunas',
             ]);
         });
 
         $grid->actions(function ($actions) {
+            // $actions->append('<a href="/admin/job-order/delete/'.$actions->getKey().'">TESSSS</a>');
+            $actions->add(new Delete);
             $actions->disableView();
+            $actions->disableDelete();
+            
         });
 
+        $grid->tools(function ($tools) {
+            $tools->batch(function ($batch) {
+                $batch->disableDelete();
+            });
+        });
+        
+
         $grid->export(function ($export) {    
-            $export->originalValue(['price', 'mulai_date_riksa', 'selesai_date_riksa', 'nomor_po', 'date_pembayaran', 'project_by', 'nama_pengawas', 'nohp_pengawas']);
+            $export->originalValue(['price', 'nomor_po', 'date_pembayaran', 'project_by', 'nama_pengawas', 'nohp_pengawas', 'description']);
             $export->column('status_pembayaran', function ($value, $original) {
                 /* if ($original == 1) {
                     # code...
@@ -292,7 +379,7 @@ class JobOrderControllers extends Controller
                     return "Belum Ada Pembayaran";
                 }
             });
-            $export->except(['']);
+            $export->except(['lihat_jasa_for_grid', 'lihat_invoice_for_grid']);
         });
 
         // $grid->exporter(new JobOrderExporter());
@@ -306,10 +393,10 @@ class JobOrderControllers extends Controller
         $grid->column('price')->display(function ($price){
             return number_format($price, 2);
         })->editable();
-        $grid->mulai_date_riksa('TGL. Mulai Riksa')->date('Y-m-d');
-        $grid->selesai_date_riksa('TGL. Selesai Riksa')->date('Y-m-d');
+        // $grid->mulai_date_riksa('TGL. Mulai Riksa')->date('Y-m-d');
+        // $grid->selesai_date_riksa('TGL. Selesai Riksa')->date('Y-m-d');
         $grid->nomor_po('NO. PO.')->editable();
-        $grid->date_pembayaran('TGL. Pembayaran')->date('Y-m-d');
+        $grid->date_pembayaran('TGL. Rencana Pelunasan')->date('Y-m-d');
         $grid->column('status_pembayaran', 'Status Peluanasan')->display(function ($status_pembayaran) {
 
             // return "<span style='color:blue'>$title</span>";
@@ -337,7 +424,7 @@ class JobOrderControllers extends Controller
         $grid->nohp_pengawas('NO. HP. Pengawas')->editable();
         $grid->description('Description')->editable();
         $grid->created_at(trans('admin.created_at'));
-        $grid->column('', 'Lihat Jasa')->modal('Jasa Job Order', function ($model) {
+        $grid->column('lihat_jasa_for_grid', 'Lihat Jasa')->modal('Jasa Job Order', function ($model) {
 
             $jod = $model->joborderdetail()->get()->map(function ($jod) {
                 $cari_jasa = Jasa::find($jod->jasa_id);
@@ -350,16 +437,39 @@ class JobOrderControllers extends Controller
                 }
                 $price = number_format($jod->price_per_unit, 2);
                 
-                $data = array('mark' => '-', 'nama_jasa' => $nama_jasa, 'qty' => $jod->qty, 'price' => $price, 'total_price' => number_format($jod->qty * $jod->price_per_unit, 2), 'created_at' => $jod->created_at);
+                $data = array('mark' => '-', 
+                                'nama_jasa' => $nama_jasa, 
+                                'qty' => $jod->qty, 
+                                'price' => $price, 
+                                'total_price' => number_format($jod->qty * $jod->price_per_unit, 2), 
+                                'mulai_date_riksa' => $jod->mulai_date_riksa,// Mulai Riksa
+                                'selesai_date_riksa' => $jod->selesai_date_riksa,// Selesai Laporan
+                                'mulai_pengecekan' => $jod->mulai_pengecekan,// Naik Suket
+                                'selesai_pengecekan' => $jod->selesai_pengecekan,// Suket Selesai
+                                'created_at' => $jod->created_at);
 
                 return $data;
             });
         
-            return new Table(['', 'Nama Jasa', 'Qty', 'Price', 'Total Price', ''], $jod->toArray());
+            return new Table(['', 'Nama Jasa', 'Qty', 'Price', 'Total Price', 'Mulai Riksa', 'Selesai Laporan', 'Naik Suket', 'Suket Selesai', ''], $jod->toArray());
 
             // return $jod;
         });
-
+        $grid->column('lihat_invoice_for_grid','Lihat Invoice')->modal('Invoice Job Order', function ($model) {
+            $invoice = $model->invoice()->get()->map(function ($invoice) {
+                $jenis_invoice = "";
+                if ($invoice->jenis_invoice == 0) {
+                    # code...
+                    $jenis_invoice = "DP";
+                }else{
+                    $jenis_invoice = "Invoice Pelunasan";
+                }                
+                $data = array('mark' => '-', 'nomor_invoice' => $invoice->nomor_invoice, 'nilai_tagihan' => number_format($invoice->nilai_tagihan, 2), 'value' => number_format($invoice->value, 2), 'jenis_invoice' => $jenis_invoice);
+                return $data;
+            });
+            return new Table(['', 'Nomor Invoice', 'Nilai Tagihan', 'Value', 'Jenis Invoice'], $invoice->toArray());
+            // return $jod;
+        });
         return $grid;
     }
 
@@ -415,4 +525,10 @@ class JobOrderControllers extends Controller
 
         return $form;
     }
+
+    public function delete($id){
+        dd($id);
+    }
+
+    
 }

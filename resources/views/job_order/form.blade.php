@@ -9,12 +9,6 @@
         <form method="post" action="{{$action}}" id="scaffold" pjax-container>
             <div class="box-body">
                 <div class="form-horizontal">
-                    {{-- <div class="form-group">
-                        <label for="inputNomorJobOrder" class="col-sm-1 control-label">No. Job Order</label>    
-                        <div class="col-sm-4">
-                            <input type="text" name="nomor_job_order" class="form-control" id="inputNomorJobOrder" placeholder="Nomor Job Order" value="{{ old('nomor_job_order') }}">
-                        </div>    
-                    </div> --}}
                     <div class="form-group">
                         <label for="inputCustomerId" class="col-sm-1 control-label">Customer</label>    
                         <div class="col-sm-4">
@@ -34,18 +28,18 @@
                             <input type="text" name="price" class="form-control price_jo" id="inputPrice" placeholder="Price" value="{{ old('price') }}">
                         </div>
                     </div>
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                         <label for="inputmulai_date_riksa" class="col-sm-1 control-label"> Mulai Date Riksa </label>
                         <div class="col-sm-4">
                             <input type="text" name="mulai_date_riksa" class="form-control date_riksa_start_jo" id="inputmulai_date_riksa" placeholder="Mulai Date Riksa" value="{{ old('mulai_date_riksa') }}">
                         </div>
-                    </div>
-                    <div class="form-group">
+                    </div> --}}
+                    {{-- <div class="form-group">
                         <label for="inputselesai_date_riksa" class="col-sm-1 control-label"> Selesai Date Riksa </label>
                         <div class="col-sm-4">
                             <input type="text" name="selesai_date_riksa" class="form-control date_riksa_end_jo" id="inputselesai_date_riksa" placeholder="Selesai Date Riksa" value="{{ old('selesai_date_riksa') }}">
                         </div>
-                    </div>
+                    </div> --}}
                     <div class="form-group">
                         <label for="inputnomor_po" class="col-sm-1 control-label"> Nomor PO </label>
                         <div class="col-sm-4">
@@ -53,7 +47,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="inputdate_pembayaran" class="col-sm-1 control-label"> TGL. Pembayaran </label>
+                        <label for="inputdate_pembayaran" class="col-sm-1 control-label"> TGL. Rencana Pelunasan </label>
                         <div class="col-sm-4">
                             <input type="text" name="date_pembayaran" class="form-control" id="inputdate_pembayaran" placeholder="TGL. Pembayaran" value="{{ old('date_pembayaran') }}">
                         </div>
@@ -99,10 +93,10 @@
                         <th style="width: 200px">Nama Jasa</th>
                         <th>qty</th>
                         <th>Harga Per Unit</th>
-                        <th>Mulai Date Riksa</th>
-                        <th>Selesai Date Riksa</th>
-                        <th>Mulai Pengecekan</th>
-                        <th>Selesai Pengecekan</th>
+                        <th>Mulai Riksa</th>
+                        <th>Selesai Laporan</th>
+                        <th>Naik Suket</th>
+                        <th>Suket Selesai</th>
                         <th>Notes</th>
                         <th>Action</th>
                     </tr>
@@ -157,6 +151,49 @@
                 <div class='form-inline margin' style="width: 100%">
                     <div class='form-group'>
                         <button type="button" class="btn btn-sm btn-success" id="add-table-field"><i class="fa fa-plus"></i>&nbsp;&nbsp;Add field</button>
+                    </div>
+                </div>
+
+                <hr />
+                <h4>Invoice</h4>
+                <table class="table table-hover" id="table-fields-invoice">
+                    <tbody>
+                    <tr>
+                        <th>Nomor Invoice</th>
+                        <th>Nilai Tagihan</th>
+                        <th>Value</th>
+                        <th>Date Pembayaran</th>
+                        <th>Jenis Invoice</th>
+                        <th>Notes</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <td><input type="text" class="form-control" name="fields_invoice[0][nomor_invoice]"></td>
+                        <td><input type="text" class="nilai_tagihan form-control" name="fields_invoice[0][nilai_tagihan]" placeholder="Nilai Tagihan"></td>
+                        <td><input type="text" class="value form-control" name="fields_invoice[0][value]" placeholder="Value"></td>
+                        <td>
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar fa-fw"></i>
+                                </span>
+                                <input type="text" class="form-control" id="date_pembayaran_invoice" placeholder="" name="fields_invoice[0][date_pembayaran]">
+                            </div>
+                        </td>
+                        <td>
+                            <select style="width: 150px" name="fields_invoice[0][jenis_invoice]">
+                                <option value="0">Invoice DP</option>
+                                <option value="1">Invoice Pelunasan</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-control" placeholder="" name="fields_invoice[0][description]"></td>
+                        <td><a class="btn btn-sm btn-danger table-field-invoice-remove"><i class="fa fa-trash"></i> remove</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <hr style="margin-top: 0;"/>
+                <div class='form-inline margin' style="width: 100%">
+                    <div class='form-group'>
+                        <button type="button" class="btn btn-sm btn-success" id="add-table-field-invoice"><i class="fa fa-plus"></i>&nbsp;&nbsp;Add field</button>
                     </div>
                 </div>
             </div>
@@ -221,6 +258,30 @@
     </tr>
 </template>
 
+<template id="table-field-tpl-invoice">
+    <tr>
+        <td><input type="text" class="form-control" name="fields_invoice[__index-invoice__][nomor_invoice]"></td>
+        <td><input type="text" class="nilai_tagihan_p form-control" name="fields_invoice[__index-invoice__][nilai_tagihan]" placeholder="Nilai Tagihan"></td>
+        <td><input type="text" class="value_p form-control" name="fields_invoice[__index-invoice__][value]" placeholder="Value"></td>
+        <td>
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <i class="fa fa-calendar fa-fw"></i>
+                </span>
+                <input type="text" class="form-control" id="date_pembayaran_p" placeholder="" name="fields_invoice[__index-invoice__][date_pembayaran]">
+            </div>
+        </td>
+        <td>
+            <select style="width: 150px" name="fields_invoice[__index-invoice__][jenis_invoice]">
+                <option value="0">Invoice DP</option>
+                <option value="1">Invoice Pelunasan</option>
+            </select>
+        </td>
+        <td><input type="text" class="form-control" placeholder="" name="fields_invoice[__index-invoice__][description]"></td>
+        <td><a class="btn btn-sm btn-danger table-field-invoice-remove"><i class="fa fa-trash"></i> remove</a></td>
+    </tr>
+</template>
+
 <template id="model-relation-tpl">
     <tr>
         <td><input type="text" class="form-control" placeholder="relation name" value=""></td>
@@ -255,6 +316,10 @@ $( document ).ready(function() {
     $('#mulai_pengecekan').parent().datetimepicker({"format":"YYYY-MM-DD HH:mm:ss","locale":"en","allowInputToggle":true});
     $('#selesai_pengecekan').parent().datetimepicker({"format":"YYYY-MM-DD HH:mm:ss","locale":"en","allowInputToggle":true});
     $('.price_per_unit').inputmask({"alias":"currency","radixPoint":".","prefix":"","removeMaskOnSubmit":true});
+
+    $('.nilai_tagihan').inputmask({"alias":"currency","radixPoint":".","prefix":"","removeMaskOnSubmit":true});
+    $('.value').inputmask({"alias":"currency","radixPoint":".","prefix":"","removeMaskOnSubmit":true});
+    $('#date_pembayaran').parent().datetimepicker({"format":"YYYY-MM-DD HH:mm:ss","locale":"en","allowInputToggle":true});
     
     
 
@@ -272,10 +337,25 @@ $( document ).ready(function() {
         $('.selesai_pengecekan_p').parent().datetimepicker({"format":"YYYY-MM-DD HH:mm:ss","locale":"en","allowInputToggle":true});
         $('.price_per_unit_p').inputmask({"alias":"currency","radixPoint":".","prefix":"","removeMaskOnSubmit":true});
     });
-
     $('#table-fields').on('click', '.table-field-remove', function(event) {
         $(event.target).closest('tr').remove();
     });
+
+    
+    
+    $('#add-table-field-invoice').click(function (event) {
+        $('#table-fields-invoice tbody').append($('#table-field-tpl-invoice').html().replace(/__index-invoice__/g, $('#table-fields-invoice tr').length - 1));
+        $('select').select2();
+        $('input[type=checkbox]').iCheck({checkboxClass:'icheckbox_minimal-blue'});
+
+        $('.nilai_tagihan_p').inputmask({"alias":"currency","radixPoint":".","prefix":"","removeMaskOnSubmit":true});
+        $('.value_p').inputmask({"alias":"currency","radixPoint":".","prefix":"","removeMaskOnSubmit":true});
+        $('#date_pembayaran_p').parent().datetimepicker({"format":"YYYY-MM-DD HH:mm:ss","locale":"en","allowInputToggle":true});
+    });
+    $('#table-fields-invoice').on('click', '.table-field-invoice-remove', function(event) {
+        $(event.target).closest('tr').remove();
+    });
+    
 
     $('#add-model-relation').click(function (event) {
         $('#model-relations tbody').append($('#model-relation-tpl').html().replace(/__index__/g, $('#model-relations tr').length - 1));

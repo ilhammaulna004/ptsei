@@ -19,7 +19,9 @@ Route::group([
 
     $router->post('/job-order/store', 'JobOrderControllers@store')->name('job_order.store');
     $router->post('/job-order/update/{id}', 'JobOrderControllers@update')->name('job_order.update');
+    $router->post('/job-order/delete/{id}', 'JobOrderControllers@delete')->name('job_order.delete');
     
     $router->resource('/job-order-detail', JobOrderDetailControllers::class);
+    $router->resource('/invoice', InvoiceControllers::class);
 
 });
